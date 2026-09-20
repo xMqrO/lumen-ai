@@ -45,6 +45,11 @@ export default function Home() {
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [activeId, setActiveId] = useState<string>('');
   const [messages, setMessages] = useState<Record<string, Message[]>>({});
+  const msgsRef = useRef({} as Record<string, Message[]>);
+  const setMsgs = (rec: Record<string, Message[]>) => {
+    msgsRef.current = rec;
+    setMessages(rec);
+  };
   const [model, setModel] = useState<Model>(MODELS[0]);
   const [streaming, setStreaming] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -55,6 +60,76 @@ export default function Home() {
 
   const abortRef = useRef<AbortController | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const conversationsRef = useRef(conversations);
+
+  useEffect(() => {
+    conversationsRef.current = conversations;
+  }, [conversations]);
+
+  const persistChat = async (convoId: string) => {
+    const list = msgsRef.current[convoId];
+    if (!list || list.length === 0) return;
+    const convo = conversationsRef.current.find((c) => c.id === convoId);
+    if (!convo) return;
+    try {
+      await fetch('/api/save-chat', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({
+          id: convoId,
+          title: convo.title,
+          preview: convo.preview,
+          messages: list.map((m) => ({
+            id: m.id,
+            role: m.role,
+            content: m.content,
+            image: m.image ?? undefined,
+            reasoning: m.reasoning ?? undefined,
+            created_at: m.createdAt ?? new Date().toISOString(),
+          })),
+        }),
+      });
+    } catch {
+      /* offline / transient */
+    }
+  };
+
+  const loadChat = async (convoId: string) => {
+    if (msgsRef.current[convoId]) return;
+    try {
+      const r = await fetch(`/api/get-chat?id=${encodeURIComponent(convoId)}`);
+      if (!r.ok) return;
+      const data = (await r.json()) as { messages?: Message[] };
+      if (data.messages) setMsgs({ ...msgsRef.current, [convoId]: data.messages });
+    } catch {
+      /* ignore */
+    }
+  };
+
+  // Restore saved conversations on startup
+  useEffect(() => {
+    let alive = true;
+    void (async () => {
+      try {
+        const r = await fetch('/api/get-chats');
+        if (!r.ok) return;
+        const data = (await r.json()) as { conversations?: Conversation[] };
+        if (!alive || !data.conversations || data.conversations.length === 0) return;
+        setConversations(data.conversations);
+        setActiveId(data.conversations[0].id);
+      } catch {
+        /* offline */
+      }
+    })();
+    return () => {
+      alive = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (activeId) void loadChat(activeId);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeId]);
 
   const activeConversation =
     conversations.find((c) => c.id === activeId) ?? conversations[0];
@@ -103,7 +178,7 @@ export default function Home() {
       preview: '',
     };
     setConversations((prev) => [convo, ...prev]);
-    setMessages((prev) => ({ ...prev, [id]: [] }));
+    setMsgs({ ...msgsRef.current, [id]: [] });
     setActiveId(id);
     setView('chat');
     setSidebarOpen(false);
@@ -127,18 +202,19 @@ export default function Home() {
       id: crypto.randomUUID(),
       role: 'user',
       content: text,
+      createdAt: new Date().toISOString(),
       ...(image ? { image } : {}),
     };
     const assistantId = crypto.randomUUID();
 
-    setMessages((prev) => ({
-      ...prev,
+    setMsgs({
+      ...msgsRef.current,
       [convoId]: [
-        ...(prev[convoId] ?? []),
+        ...(msgsRef.current[convoId] ?? []),
         userMessage,
-        { id: assistantId, role: 'assistant', content: '' },
+        { id: assistantId, role: 'assistant', content: '', createdAt: new Date().toISOString() },
       ],
-    }));
+    });
 
     if (isFirst) {
       setConversations((prev) =>
@@ -216,9 +292,10 @@ export default function Home() {
         const paint = () => {
           const cur = received.slice(0, shown);
           const cut = live ? Math.max(0, cur.length - TAIL_LEN) : cur.length;
-          setMessages((prev) => ({
-            ...prev,
-            [convoId]: (prev[convoId] ?? []).map((m) =>
+          const base = msgsRef.current[convoId] ?? [];
+          setMsgs({
+            ...msgsRef.current,
+            [convoId]: base.map((m) =>
               m.id === assistantId
                 ? {
                     ...m,
@@ -228,7 +305,7 @@ export default function Home() {
                   }
                 : m,
             ),
-          }));
+          });
         };
         // Stream at arrival speed: every tick drains the backlog so the reply
         // paints continuously (letter-by-letter for slow streams, near-instant
@@ -274,9 +351,10 @@ export default function Home() {
       } catch (err) {
         if (controller.signal.aborted) return;
         const msg = err instanceof Error ? err.message : 'Request failed';
-        setMessages((prev) => ({
-          ...prev,
-          [convoId]: (prev[convoId] ?? []).map((m) =>
+        const base = msgsRef.current[convoId] ?? [];
+        setMsgs({
+          ...msgsRef.current,
+          [convoId]: base.map((m) =>
             m.id === assistantId
               ? {
                   ...m,
@@ -285,10 +363,11 @@ export default function Home() {
                 }
               : m,
           ),
-        }));
+        });
       } finally {
         abortRef.current = null;
         setStreaming(false);
+        void persistChat(convoId);
       }
     })();
   };
@@ -299,10 +378,10 @@ export default function Home() {
     if (idx === -1) return;
     const userMsg = [...list.slice(0, idx)].reverse().find((m) => m.role === 'user');
     if (!userMsg) return;
-    setMessages((prev) => ({
-      ...prev,
-      [activeId]: (prev[activeId] ?? []).filter((m) => m.id !== assistantId),
-    }));
+    setMsgs({
+      ...msgsRef.current,
+      [activeId]: (msgsRef.current[activeId] ?? []).filter((m) => m.id !== assistantId),
+    });
     handleSend(userMsg.content, userMsg.image);
   };
 
@@ -318,9 +397,10 @@ export default function Home() {
       id: crypto.randomUUID(),
       role: 'assistant',
       content: `Hi, I'm ${agent.name}. ${agent.description}`,
+      createdAt: new Date().toISOString(),
     };
     setConversations((prev) => [convo, ...prev]);
-    setMessages((prev) => ({ ...prev, [id]: [welcome] }));
+    setMsgs({ ...msgsRef.current, [id]: [welcome] });
     setActiveId(id);
     setView('chat');
   };

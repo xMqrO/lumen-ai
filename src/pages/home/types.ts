@@ -7,6 +7,7 @@ export interface Message {
   reasoning?: string;
   image?: string;
   tail?: string;
+  createdAt?: string;
 }
 
 export interface Model {
