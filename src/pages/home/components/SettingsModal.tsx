@@ -160,9 +160,9 @@ export default function SettingsModal({
                 onChange={(e) => onChange({ reasoningEffort: e.target.value })}
                 className="cursor-pointer rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-900 outline-none focus:border-brand-400 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
               >
+                <option value="low">Low (max speed)</option>
                 <option value="high">High (slower, smarter)</option>
                 <option value="medium">Medium</option>
-                <option value="low">Low (fast)</option>
                 <option value="auto">Auto</option>
               </select>
             </Row>

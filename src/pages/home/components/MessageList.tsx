@@ -24,21 +24,6 @@ const MessageItem = memo(function MessageItem({ m }: MessageItemProps) {
           {m.role === 'user' ? 'You' : 'Lumen'}
         </p>
 
-        {m.reasoning ? (
-          <details
-            className="mt-1.5 rounded-lg border border-zinc-200/80 bg-zinc-50/80 dark:border-zinc-800 dark:bg-zinc-900/60"
-            open
-          >
-            <summary className="flex cursor-pointer select-none items-center gap-1.5 px-3 py-2 text-xs font-medium text-zinc-400 transition-colors hover:text-zinc-600 dark:hover:text-zinc-300">
-              <i className="ri-loader-4-line animate-spin text-xs text-brand-400" />
-              Thinking…
-            </summary>
-            <p className="max-h-56 overflow-y-auto whitespace-pre-wrap px-3 pb-3 text-xs italic leading-relaxed text-zinc-400/90">
-              {m.reasoning}
-            </p>
-          </details>
-        ) : null}
-
         {m.content ? (
           <p className="mt-1 whitespace-pre-wrap text-[15px] leading-relaxed text-zinc-800 dark:text-zinc-100">
             {m.content}

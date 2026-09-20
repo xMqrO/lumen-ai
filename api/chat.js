@@ -99,9 +99,7 @@ export default async function handler(req, res) {
               continue;
             }
             const delta = obj.choices?.[0]?.delta ?? {};
-            const reasoning = delta.reasoning_content || delta.reasoning || delta.thinking || '';
             const content = delta.content || delta.text || '';
-            if (reasoning) emit({ type: 'reasoning', text: String(reasoning) });
             if (content) emit({ type: 'content', text: String(content) });
           } catch {
             /* skip malformed event */
