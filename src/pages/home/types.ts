@@ -5,6 +5,7 @@ export interface Message {
   role: Role;
   content: string;
   reasoning?: string;
+  image?: string;
 }
 
 export interface Model {

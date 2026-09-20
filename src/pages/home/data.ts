@@ -7,63 +7,9 @@ export const MODELS: Model[] = [
   { id: 'z-ai/glm-5.3', name: 'GLM-5.3', badge: 'NVIDIA' },
 ];
 
-export const CONVERSATIONS: Conversation[] = [
-  {
-    id: 'c1',
-    title: 'Quantum computing, simply explained',
-    group: 'Today',
-    preview: 'Think of a qubit like a coin mid-flip…',
-    pinned: true,
-  },
-  {
-    id: 'c2',
-    title: 'Launch copy for the new landing page',
-    group: 'Today',
-    preview: 'Here are three headline directions…',
-  },
-  {
-    id: 'c3',
-    title: 'Why does my useEffect run twice?',
-    group: 'Today',
-    preview: 'React 18 StrictMode mounts twice in dev…',
-  },
-  {
-    id: 'c4',
-    title: '5-day Kyoto itinerary for autumn',
-    group: 'Yesterday',
-    preview: 'Day one: land at KIX, head to Gion…',
-  },
-  {
-    id: 'c5',
-    title: 'Cold email to seed investors',
-    group: 'Yesterday',
-    preview: 'Subject: a 1-line intro that earns the open…',
-  },
-  {
-    id: 'c6',
-    title: 'Rewrite this SQL join more efficiently',
-    group: 'Yesterday',
-    preview: 'The nested subquery is the bottleneck…',
-  },
-  {
-    id: 'c7',
-    title: 'Name ideas for a specialty coffee brand',
-    group: 'Previous 7 days',
-    preview: 'Ember, Marlowe, Driftwood, Halcyon…',
-  },
-  {
-    id: 'c8',
-    title: 'Summarize this 40-page PDF',
-    group: 'Previous 7 days',
-    preview: 'Five key findings, ranked by impact…',
-  },
-  {
-    id: 'c9',
-    title: 'Pitch deck outline for a Series A',
-    group: 'Previous 7 days',
-    preview: 'Slide 1 — the problem in one sentence…',
-  },
-];
+export const VISION_MODEL_ID = 'qwen/qwen3.8-27b';
+
+export const CONVERSATIONS: Conversation[] = [];
 
 export const PROJECTS: Project[] = [
   { id: 'p1', name: 'Q4 Marketing Site', icon: 'ri-layout-masonry-line', count: 12 },
@@ -94,34 +40,7 @@ export const SUGGESTIONS: { icon: string; title: string; subtitle: string }[] = 
   },
 ];
 
-export const SEED_MESSAGES: Record<string, Message[]> = {
-  c1: [
-    {
-      id: 'm1',
-      role: 'user',
-      content: 'Explain quantum computing simply, but make it actually useful.',
-    },
-    {
-      id: 'm2',
-      role: 'assistant',
-      content:
-        'Think of a regular bit as a light switch — it is either off (0) or on (1). A qubit is more like a coin spinning in the air: while it spins, it is kind of both heads and tails at once. That "both at once" state is called superposition.\n\nWhy that matters: when you have many qubits, they can explore many possible answers simultaneously. A clever algorithm then nudges the wrong answers to cancel out and the right answer to reinforce itself — like tuning a radio until only one station comes through clearly.\n\nThe useful part today is narrow but real: simulating molecules for drug discovery, optimizing huge logistics routes, and certain kinds of cryptography. It is not a faster laptop — it is a different tool for specific problems that overwhelm normal computers.',
-    },
-  ],
-  c3: [
-    {
-      id: 'm1',
-      role: 'user',
-      content: 'My useEffect runs twice in development. Is something broken?',
-    },
-    {
-      id: 'm2',
-      role: 'assistant',
-      content:
-        'Nothing is broken — that is React 18 StrictMode doing its job in development only. It intentionally mounts, unmounts, and remounts your components once to surface bugs where cleanup is missing.\n\nSo if you fetch data in an effect, make sure you either abort it or ignore the result after cleanup. A clean pattern:\n\nuseEffect(() => {\n  const controller = new AbortController();\n  fetch(url, { signal: controller.signal }).then(setData).catch(() => {});\n  return () => controller.abort();\n}, [url]);\n\nIn production builds it runs once, so do not "fix" it by adding guards — fix the missing cleanup instead.',
-    },
-  ],
-};
+export const SEED_MESSAGES: Record<string, Message[]> = {};
 
 export const DEFAULT_AGENTS: Agent[] = [
   {

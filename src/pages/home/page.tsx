@@ -8,7 +8,7 @@ import ToolsPanel from './components/ToolsPanel';
 import Agents from './components/Agents';
 import SettingsModal from './components/SettingsModal';
 import { useTheme } from '@/hooks/useTheme';
-import { CONVERSATIONS, DEFAULT_AGENTS, DEFAULT_SETTINGS, MODELS, PROJECTS, SEED_MESSAGES } from './data';
+import { DEFAULT_AGENTS, DEFAULT_SETTINGS, MODELS, PROJECTS, VISION_MODEL_ID } from './data';
 import type { Agent, Conversation, Message, Model, Settings } from './types';
 
 type View = 'chat' | 'agents';
@@ -42,9 +42,9 @@ function loadSettings(): Settings {
 export default function Home() {
   const { theme, toggle } = useTheme();
   const [view, setView] = useState<View>('chat');
-  const [conversations, setConversations] = useState<Conversation[]>(CONVERSATIONS);
-  const [activeId, setActiveId] = useState<string>(CONVERSATIONS[0].id);
-  const [messages, setMessages] = useState<Record<string, Message[]>>(SEED_MESSAGES);
+  const [conversations, setConversations] = useState<Conversation[]>([]);
+  const [activeId, setActiveId] = useState<string>('');
+  const [messages, setMessages] = useState<Record<string, Message[]>>({});
   const [model, setModel] = useState<Model>(MODELS[0]);
   const [streaming, setStreaming] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -109,19 +109,32 @@ export default function Home() {
     setSidebarOpen(false);
   };
 
-  const handleSend = (text: string) => {
-    const isFirst = (messages[activeId]?.length ?? 0) === 0;
+  const handleSend = (text: string, image?: string) => {
+    let convoId = activeId;
+    if (!convoId || !conversations.some((c) => c.id === convoId)) {
+      convoId = crypto.randomUUID();
+      const convo: Conversation = {
+        id: convoId,
+        title: 'New chat',
+        group: 'Today',
+        preview: '',
+      };
+      setConversations((prev) => [convo, ...prev]);
+      setActiveId(convoId);
+    }
+    const isFirst = (messages[convoId]?.length ?? 0) === 0;
     const userMessage: Message = {
       id: crypto.randomUUID(),
       role: 'user',
       content: text,
+      ...(image ? { image } : {}),
     };
     const assistantId = crypto.randomUUID();
 
     setMessages((prev) => ({
       ...prev,
-      [activeId]: [
-        ...(prev[activeId] ?? []),
+      [convoId]: [
+        ...(prev[convoId] ?? []),
         userMessage,
         { id: assistantId, role: 'assistant', content: '' },
       ],
@@ -130,7 +143,7 @@ export default function Home() {
     if (isFirst) {
       setConversations((prev) =>
         prev.map((c) =>
-          c.id === activeId
+          c.id === convoId
             ? {
                 ...c,
                 title: text.length > 46 ? `${text.slice(0, 46)}…` : text,
@@ -143,13 +156,25 @@ export default function Home() {
 
     stop();
 
-    const history = messages[activeId] ?? [];
-    const apiMessages = [
+    type ApiPart = { type: 'text'; text: string } | { type: 'image_url'; image_url: { url: string } };
+    const buildContent = (c: string | undefined, img?: string): string | ApiPart[] => {
+      if (!img) return c ?? '';
+      const parts: ApiPart[] = [];
+      if (c) parts.push({ type: 'text', text: c });
+      parts.push({ type: 'image_url', image_url: { url: img } });
+      return parts;
+    };
+
+    const history = messages[convoId] ?? [];
+    const apiMessages: { role: string; content: string | ApiPart[] }[] = [
       { role: 'system', content: settings.systemPrompt },
       ...history
-        .filter((m) => m.content)
-        .map((m) => ({ role: m.role, content: m.content })),
-      { role: 'user', content: text },
+        .filter((m) => m.content || m.image)
+        .map((m) => ({
+          role: m.role as string,
+          content: buildContent(m.content, m.image),
+        })),
+      { role: 'user', content: buildContent(text, image) },
     ];
 
     const controller = new AbortController();
@@ -189,7 +214,7 @@ export default function Home() {
         const paint = () => {
           setMessages((prev) => ({
             ...prev,
-            [activeId]: (prev[activeId] ?? []).map((m) =>
+            [convoId]: (prev[convoId] ?? []).map((m) =>
               m.id === assistantId
                 ? { ...m, content: received.slice(0, shown), reasoning: reasoningAcc }
                 : m,
@@ -240,7 +265,7 @@ export default function Home() {
         const msg = err instanceof Error ? err.message : 'Request failed';
         setMessages((prev) => ({
           ...prev,
-          [activeId]: (prev[activeId] ?? []).map((m) =>
+          [convoId]: (prev[convoId] ?? []).map((m) =>
             m.id === assistantId
               ? { ...m, content: m.content ? `${m.content}\n\n⚠ ${msg}` : `⚠ ${msg}` }
               : m,

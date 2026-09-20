@@ -24,6 +24,14 @@ const MessageItem = memo(function MessageItem({ m }: MessageItemProps) {
           {m.role === 'user' ? 'You' : 'Lumen'}
         </p>
 
+        {m.image && (
+          <img
+            src={m.image}
+            alt="Attachment"
+            className="mt-2 max-h-64 rounded-xl border border-zinc-200 object-cover dark:border-zinc-700"
+          />
+        )}
+
         {m.content ? (
           <p className="mt-1 whitespace-pre-wrap text-[15px] leading-relaxed text-zinc-800 dark:text-zinc-100">
             {m.content}
