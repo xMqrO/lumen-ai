@@ -52,13 +52,12 @@ export default async function handler(req, res) {
       base: 'https://api.groq.com/openai/v1/chat/completions',
       env: 'GROQ_API_KEY',
       models: new Set([
-        'llama-3.1-8b-instant',
-        'llama-3.3-70b-versatile',
         'openai/gpt-oss-20b',
         'openai/gpt-oss-120b',
-        'qwen/qwen3.6-27b',
-        'meta-llama/llama-4-scout-17b-16e-instruct',
-        'meta-llama/llama-4-maverick-17b-128e-instruct',
+        'qwen/qwen3.8-27b',
+        'groq/compound',
+        'groq/compound-mini',
+        'allam-2-7b',
       ]),
     },
     nvidia: {
@@ -80,7 +79,8 @@ export default async function handler(req, res) {
   // Forward the reasoning knob only where the upstream understands it.
   if (
     reasoning_effort &&
-    (provider === PROVIDERS.nvidia || (provider === PROVIDERS.cerebras && /^gpt-oss/.test(model)))
+    (provider === PROVIDERS.nvidia ||
+      (model === 'openai/gpt-oss-20b' || model === 'openai/gpt-oss-120b' || model === 'gpt-oss-20b' || model === 'gpt-oss-120b'))
   ) {
     payload.reasoning_effort = reasoning_effort;
   }

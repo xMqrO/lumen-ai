@@ -28,8 +28,8 @@ function loadSettings(): Settings {
     const raw = window.localStorage.getItem('lumen_settings');
     if (raw) {
       const saved = JSON.parse(raw) as Partial<Settings>;
-      if (saved.defaultModel !== 'llama-3.1-8b-instant') {
-        saved.defaultModel = 'llama-3.1-8b-instant';
+      if (saved.defaultModel !== 'openai/gpt-oss-20b') {
+        saved.defaultModel = 'openai/gpt-oss-20b';
       }
       return { ...DEFAULT_SETTINGS, ...saved };
     }

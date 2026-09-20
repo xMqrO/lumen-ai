@@ -1,11 +1,9 @@
 import type { Agent, Conversation, Message, Model, Project, Provider, Settings } from './types';
 
 export const MODELS: Model[] = [
-  { id: 'llama-3.1-8b-instant', name: 'Llama 3.1 8B', badge: 'Groq' },
-  { id: 'llama-3.3-70b-versatile', name: 'Llama 3.3 70B', badge: 'Groq' },
   { id: 'openai/gpt-oss-20b', name: 'GPT-OSS 20B', badge: 'Groq' },
   { id: 'openai/gpt-oss-120b', name: 'GPT-OSS 120B', badge: 'Groq' },
-  { id: 'meta-llama/llama-4-scout-17b-16e-instruct', name: 'Llama 4 Scout', badge: 'Groq' },
+  { id: 'qwen/qwen3.8-27b', name: 'Qwen 3.8 27B', badge: 'Groq' },
   { id: 'gpt-oss-120b', name: 'GPT-OSS 120B', badge: 'Cerebras' },
   { id: 'llama3.1-8b', name: 'Llama 3.1 8B', badge: 'Cerebras' },
   { id: 'z-ai/glm-5.3', name: 'GLM-5.3', badge: 'NVIDIA' },
@@ -179,7 +177,7 @@ export const DEFAULT_AGENTS: Agent[] = [
 
 export const DEFAULT_SETTINGS: Settings = {
   theme: 'dark',
-  defaultModel: 'llama-3.1-8b-instant',
+  defaultModel: 'openai/gpt-oss-20b',
   temperature: 0.7,
   maxTokens: 2048,
   systemPrompt:
