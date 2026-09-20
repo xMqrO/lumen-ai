@@ -17,7 +17,7 @@ const MessageActions = memo(function MessageActions({ message, onRegenerate }: M
   const [feedback, setFeedback] = useState<'up' | 'down' | null>(null);
 
   const handleCopy = () => {
-    copyText(message.content);
+    copyText(`${message.content ?? ''}${message.tail ?? ''}`);
     setCopied(true);
     window.setTimeout(() => setCopied(false), 2000);
   };

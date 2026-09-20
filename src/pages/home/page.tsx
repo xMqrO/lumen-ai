@@ -211,12 +211,21 @@ export default function Home() {
         let reasoningAcc = '';
         let shown = 0;
         let ended = false;
+        let live = false;
+        const TAIL_LEN = 12;
         const paint = () => {
+          const cur = received.slice(0, shown);
+          const cut = live ? Math.max(0, cur.length - TAIL_LEN) : cur.length;
           setMessages((prev) => ({
             ...prev,
             [convoId]: (prev[convoId] ?? []).map((m) =>
               m.id === assistantId
-                ? { ...m, content: received.slice(0, shown), reasoning: reasoningAcc }
+                ? {
+                    ...m,
+                    content: cur.slice(0, cut),
+                    tail: live ? cur.slice(cut) : '',
+                    reasoning: reasoningAcc,
+                  }
                 : m,
             ),
           }));
@@ -229,6 +238,7 @@ export default function Home() {
           const pending = received.length - shown;
           if (pending <= 0) return;
           shown = Math.min(received.length, shown + Math.max(1, Math.ceil(pending / 3)));
+          live = true;
           paint();
         }, 8);
         try {
@@ -258,6 +268,7 @@ export default function Home() {
         } finally {
           window.clearInterval(typeTimer);
           shown = received.length;
+          live = false;
           if (received || reasoningAcc) paint();
         }
       } catch (err) {
@@ -267,7 +278,11 @@ export default function Home() {
           ...prev,
           [convoId]: (prev[convoId] ?? []).map((m) =>
             m.id === assistantId
-              ? { ...m, content: m.content ? `${m.content}\n\n⚠ ${msg}` : `⚠ ${msg}` }
+              ? {
+                  ...m,
+                  content: m.content ? `${m.content}\n\n⚠ ${msg}` : `⚠ ${msg}`,
+                  tail: '',
+                }
               : m,
           ),
         }));

@@ -54,3 +54,43 @@ textarea {
 .animate-aurora-slow {
   animation: aurora 26s ease-in-out infinite reverse;
 }
+
+/* Streaming motion-blur trail for the characters being written */
+.text-motion-blur {
+  filter: blur(1.1px) saturate(1.05);
+  opacity: 0.78;
+  -webkit-mask-image: linear-gradient(
+    to right,
+    rgba(0, 0, 0, 0.1),
+    rgba(0, 0, 0, 0.95) 75%
+  );
+  mask-image: linear-gradient(
+    to right,
+    rgba(0, 0, 0, 0.1),
+    rgba(0, 0, 0, 0.95) 75%
+  );
+  will-change: filter;
+}
+
+.typing-caret {
+  display: inline-block;
+  width: 2px;
+  height: 1em;
+  margin-left: 2px;
+  vertical-align: -0.15em;
+  border-radius: 1px;
+  background: var(--tw-ring-color, #f59e0b);
+  box-shadow: 0 0 8px rgba(245, 158, 11, 0.7);
+  animation: caret-blink 0.9s steps(1, start) infinite;
+}
+
+@keyframes caret-blink {
+  0%,
+  60% {
+    opacity: 1;
+  }
+  61%,
+  100% {
+    opacity: 0;
+  }
+}

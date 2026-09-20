@@ -6,6 +6,7 @@ import MessageActions from './MessageActions';
 interface ChatMessageProps {
   m: Message;
   animate: boolean;
+  streaming?: boolean;
   onRegenerate?: (assistantId: string) => void;
 }
 
@@ -28,7 +29,7 @@ const UserMessage = memo(function UserMessage({ m, animate }: ChatMessageProps) 
   );
 });
 
-const AssistantMessage = memo(function AssistantMessage({ m, animate, onRegenerate }: ChatMessageProps) {
+const AssistantMessage = memo(function AssistantMessage({ m, animate, streaming, onRegenerate }: ChatMessageProps) {
   return (
     <div className={`group flex gap-3 py-4 ${animate ? 'animate-fade-up' : ''}`}>
       <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-brand-500 shadow-sm shadow-brand-500/30">
@@ -57,6 +58,12 @@ const AssistantMessage = memo(function AssistantMessage({ m, animate, onRegenera
         {m.content ? (
           <div className="mt-1">
             <MarkdownRenderer content={m.content} />
+            {streaming && m.tail && (
+              <span className="break-words text-[15px] leading-[1.7] text-zinc-800 dark:text-zinc-100">
+                <span className="text-motion-blur">{m.tail}</span>
+                <span className="typing-caret" aria-hidden />
+              </span>
+            )}
           </div>
         ) : (
           <div className="mt-3 flex items-center gap-1.5">
@@ -93,6 +100,7 @@ export default function MessageList({ messages, streaming, onRegenerate }: Messa
             key={m.id}
             m={m}
             animate={i === lastIndex}
+            streaming={streaming}
             onRegenerate={onRegenerate}
           />
         ),

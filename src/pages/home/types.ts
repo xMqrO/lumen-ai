@@ -6,6 +6,7 @@ export interface Message {
   content: string;
   reasoning?: string;
   image?: string;
+  tail?: string;
 }
 
 export interface Model {
