@@ -1,27 +1,43 @@
 import { memo } from 'react';
 import type { Message } from '../types';
+import MarkdownRenderer from './markdown/MarkdownRenderer';
+import MessageActions from './MessageActions';
 
-interface MessageItemProps {
+interface ChatMessageProps {
   m: Message;
+  animate: boolean;
+  onRegenerate?: (assistantId: string) => void;
 }
 
-const MessageItem = memo(function MessageItem({ m }: MessageItemProps) {
+const UserMessage = memo(function UserMessage({ m, animate }: ChatMessageProps) {
   return (
-    <div
-      key={m.id}
-      className={`group flex animate-fade-up gap-3 py-4`}
-    >
-      <span
-        className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-white ${
-          m.role === 'user' ? 'bg-zinc-700 text-xs font-bold dark:bg-zinc-600' : 'bg-brand-500'
-        }`}
-      >
-        {m.role === 'user' ? 'AV' : <i className="ri-sparkling-2-fill text-sm" />}
+    <div className={`flex justify-end py-3 ${animate ? 'animate-fade-up' : ''}`}>
+      <div className="max-w-[85%] rounded-2xl rounded-br-md bg-brand-500/10 px-4 py-2.5 sm:max-w-[75%] dark:bg-brand-500/15">
+        {m.image && (
+          <img
+            src={m.image}
+            alt="Attachment"
+            className="mb-2 max-h-64 rounded-lg object-cover"
+          />
+        )}
+        <p className="whitespace-pre-wrap break-words text-[15px] leading-relaxed text-zinc-900 dark:text-zinc-50">
+          {m.content}
+        </p>
+      </div>
+    </div>
+  );
+});
+
+const AssistantMessage = memo(function AssistantMessage({ m, animate, onRegenerate }: ChatMessageProps) {
+  return (
+    <div className={`group flex gap-3 py-4 ${animate ? 'animate-fade-up' : ''}`}>
+      <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-brand-500 shadow-sm shadow-brand-500/30">
+        <span className="h-2.5 w-2.5 rounded-full bg-white" />
       </span>
 
       <div className="min-w-0 flex-1 pt-0.5">
         <p className="text-xs font-semibold uppercase tracking-wide text-zinc-400">
-          {m.role === 'user' ? 'You' : 'Lumen'}
+          Lumen
         </p>
 
         {m.image && (
@@ -32,10 +48,16 @@ const MessageItem = memo(function MessageItem({ m }: MessageItemProps) {
           />
         )}
 
+        {m.reasoning && !m.content && (
+          <div className="mt-2 space-y-1.5">
+            <span className="h-2 w-2 animate-bounce rounded-full bg-brand-400" />
+          </div>
+        )}
+
         {m.content ? (
-          <p className="mt-1 whitespace-pre-wrap text-[15px] leading-relaxed text-zinc-800 dark:text-zinc-100">
-            {m.content}
-          </p>
+          <div className="mt-1">
+            <MarkdownRenderer content={m.content} />
+          </div>
         ) : (
           <div className="mt-3 flex items-center gap-1.5">
             <span className="h-2 w-2 animate-bounce rounded-full bg-brand-400" />
@@ -44,18 +66,8 @@ const MessageItem = memo(function MessageItem({ m }: MessageItemProps) {
           </div>
         )}
 
-        {m.role === 'assistant' && m.content && (
-          <div className="mt-2 flex items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100">
-            <button className="flex h-7 w-7 cursor-pointer items-center justify-center rounded-md text-zinc-400 transition-all duration-150 hover:bg-zinc-100 active:scale-90 dark:hover:bg-zinc-800" aria-label="Copy">
-              <i className="ri-file-copy-line text-sm" />
-            </button>
-            <button className="flex h-7 w-7 cursor-pointer items-center justify-center rounded-md text-zinc-400 transition-all duration-150 hover:bg-zinc-100 active:scale-90 dark:hover:bg-zinc-800" aria-label="Good response">
-              <i className="ri-thumb-up-line text-sm" />
-            </button>
-            <button className="flex h-7 w-7 cursor-pointer items-center justify-center rounded-md text-zinc-400 transition-all duration-150 hover:bg-zinc-100 active:scale-90 dark:hover:bg-zinc-800" aria-label="Regenerate">
-              <i className="ri-refresh-line text-sm" />
-            </button>
-          </div>
+        {m.content && (
+          <MessageActions message={m} onRegenerate={onRegenerate} />
         )}
       </div>
     </div>
@@ -65,16 +77,27 @@ const MessageItem = memo(function MessageItem({ m }: MessageItemProps) {
 interface MessageListProps {
   messages: Message[];
   streaming: boolean;
+  onRegenerate?: (assistantId: string) => void;
 }
 
-export default function MessageList({ messages, streaming }: MessageListProps) {
+export default function MessageList({ messages, streaming, onRegenerate }: MessageListProps) {
+  const lastIndex = messages.length - 1;
+
   return (
     <div className="mx-auto w-full max-w-3xl px-4 py-6 md:px-6">
-      {messages.map((m) => (
-        <MessageItem key={m.id} m={m} />
-      ))}
-
-      {streaming && messages[messages.length - 1]?.content === '' && (
+      {messages.map((m, i) =>
+        m.role === 'user' ? (
+          <UserMessage key={m.id} m={m} animate={i === lastIndex} />
+        ) : (
+          <AssistantMessage
+            key={m.id}
+            m={m}
+            animate={i === lastIndex}
+            onRegenerate={onRegenerate}
+          />
+        ),
+      )}
+      {streaming && lastIndex >= 0 && messages[lastIndex].content === '' && (
         <p className="pb-2 text-xs text-zinc-400">Lumen is thinking…</p>
       )}
     </div>

@@ -278,6 +278,19 @@ export default function Home() {
     })();
   };
 
+  const handleRegenerate = (assistantId: string) => {
+    const list = messages[activeId] ?? [];
+    const idx = list.findIndex((m) => m.id === assistantId);
+    if (idx === -1) return;
+    const userMsg = [...list.slice(0, idx)].reverse().find((m) => m.role === 'user');
+    if (!userMsg) return;
+    setMessages((prev) => ({
+      ...prev,
+      [activeId]: (prev[activeId] ?? []).filter((m) => m.id !== assistantId),
+    }));
+    handleSend(userMsg.content, userMsg.image);
+  };
+
   const handleUseAgent = (agent: Agent) => {
     const id = crypto.randomUUID();
     const convo: Conversation = {
@@ -348,7 +361,11 @@ export default function Home() {
                 onUse={handleUseAgent}
               />
             ) : activeMessages.length > 0 ? (
-              <MessageList messages={activeMessages} streaming={streaming} />
+              <MessageList
+                    messages={activeMessages}
+                    streaming={streaming}
+                    onRegenerate={handleRegenerate}
+                  />
             ) : (
               <Welcome onPick={handleSend} />
             )}
