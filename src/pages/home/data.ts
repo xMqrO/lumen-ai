@@ -1,10 +1,11 @@
 import type { Agent, Conversation, Message, Model, Project, Provider, Settings } from './types';
 
 export const MODELS: Model[] = [
-  { id: 'gpt-4o', name: 'GPT-4o', badge: 'Fast' },
-  { id: 'gpt-4o-mini', name: 'GPT-4o mini' },
-  { id: 'o1', name: 'o1', badge: 'Reasoning' },
-  { id: 'claude', name: 'Claude 3.5', badge: 'Soon' },
+  { id: 'z-ai/glm-5.3', name: 'GLM-5.3', badge: 'NVIDIA' },
+  { id: 'nvidia/llama-3.1-nemotron-70b-instruct', name: 'Nemotron 70B', badge: 'NVIDIA' },
+  { id: 'meta/llama-3.3-70b-instruct', name: 'Llama 3.3 70B', badge: 'NVIDIA' },
+  { id: 'deepseek-ai/deepseek-r1', name: 'DeepSeek R1', badge: 'NVIDIA' },
+  { id: 'qwen/qwen2.5-72b-instruct', name: 'Qwen2.5 72B', badge: 'NVIDIA' },
 ];
 
 export const CONVERSATIONS: Conversation[] = [
@@ -172,7 +173,7 @@ export const DEFAULT_AGENTS: Agent[] = [
 
 export const DEFAULT_SETTINGS: Settings = {
   theme: 'dark',
-  defaultModel: 'gpt-4o',
+  defaultModel: 'z-ai/glm-5.3',
   temperature: 0.7,
   maxTokens: 2048,
   systemPrompt:

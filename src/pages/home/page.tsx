@@ -47,7 +47,7 @@ export default function Home() {
   const [agents, setAgents] = useState<Agent[]>(loadAgents);
   const [settings, setSettings] = useState<Settings>(loadSettings);
 
-  const timerRef = useRef<number | null>(null);
+  const abortRef = useRef<AbortController | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   const activeConversation =
@@ -75,8 +75,8 @@ export default function Home() {
   }, [messages, streaming]);
 
   const stop = () => {
-    if (timerRef.current) window.clearInterval(timerRef.current);
-    timerRef.current = null;
+    if (abortRef.current) abortRef.current.abort();
+    abortRef.current = null;
     setStreaming(false);
   };
 
@@ -135,27 +135,71 @@ export default function Home() {
       );
     }
 
-    const reply =
-      `Great question. Here's my take on "${text.trim()}" — this is a temporary placeholder so you can feel the streaming flow. ` +
-      'Next we connect the real AI provider (key stored securely in your Backend, used only inside a secure function), and I will give you a genuinely useful answer here.';
+    stop();
 
+    const history = messages[activeId] ?? [];
+    const apiMessages = [
+      { role: 'system', content: settings.systemPrompt },
+      ...history
+        .filter((m) => m.content)
+        .map((m) => ({ role: m.role, content: m.content })),
+      { role: 'user', content: text },
+    ];
+
+    const controller = new AbortController();
+    abortRef.current = controller;
     setStreaming(true);
-    let i = 0;
-    timerRef.current = window.setInterval(() => {
-      i += 3;
-      const partial = reply.slice(0, i);
-      setMessages((prev) => ({
-        ...prev,
-        [activeId]: (prev[activeId] ?? []).map((m) =>
-          m.id === assistantId ? { ...m, content: partial } : m,
-        ),
-      }));
-      if (i >= reply.length) {
-        if (timerRef.current) window.clearInterval(timerRef.current);
-        timerRef.current = null;
+
+    void (async () => {
+      try {
+        const resp = await fetch('/api/chat', {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({
+            model: model.id,
+            messages: apiMessages,
+            temperature: settings.temperature,
+            max_tokens: settings.maxTokens,
+          }),
+          signal: controller.signal,
+        });
+
+        if (!resp.ok || !resp.body) {
+          const errText = await resp.text().catch(() => '');
+          if (controller.signal.aborted) return;
+          throw new Error(errText || `Request failed (${resp.status})`);
+        }
+
+        const reader = resp.body.getReader();
+        const decoder = new TextDecoder();
+        let acc = '';
+        for (;;) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          acc += decoder.decode(value, { stream: true });
+          setMessages((prev) => ({
+            ...prev,
+            [activeId]: (prev[activeId] ?? []).map((m) =>
+              m.id === assistantId ? { ...m, content: acc } : m,
+            ),
+          }));
+        }
+      } catch (err) {
+        if (controller.signal.aborted) return;
+        const msg = err instanceof Error ? err.message : 'Request failed';
+        setMessages((prev) => ({
+          ...prev,
+          [activeId]: (prev[activeId] ?? []).map((m) =>
+            m.id === assistantId
+              ? { ...m, content: m.content ? `${m.content}\n\n⚠ ${msg}` : `⚠ ${msg}` }
+              : m,
+          ),
+        }));
+      } finally {
+        abortRef.current = null;
         setStreaming(false);
       }
-    }, 16);
+    })();
   };
 
   const handleUseAgent = (agent: Agent) => {
