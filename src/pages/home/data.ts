@@ -1,12 +1,17 @@
 import type { Agent, Conversation, Message, Model, Project, Provider, Settings } from './types';
 
 export const MODELS: Model[] = [
+  { id: 'llama-3.1-8b-instant', name: 'Llama 3.1 8B', badge: 'Groq' },
+  { id: 'llama-3.3-70b-versatile', name: 'Llama 3.3 70B', badge: 'Groq' },
+  { id: 'openai/gpt-oss-20b', name: 'GPT-OSS 20B', badge: 'Groq' },
+  { id: 'openai/gpt-oss-120b', name: 'GPT-OSS 120B', badge: 'Groq' },
+  { id: 'meta-llama/llama-4-scout-17b-16e-instruct', name: 'Llama 4 Scout', badge: 'Groq' },
+  { id: 'gpt-oss-120b', name: 'GPT-OSS 120B', badge: 'Cerebras' },
+  { id: 'llama3.1-8b', name: 'Llama 3.1 8B', badge: 'Cerebras' },
   { id: 'z-ai/glm-5.3', name: 'GLM-5.3', badge: 'NVIDIA' },
-  { id: 'openai/gpt-oss-20b', name: 'GPT-OSS 20B', badge: 'NVIDIA' },
   { id: 'nvidia/llama-3.1-nemotron-70b-instruct', name: 'Nemotron 70B', badge: 'NVIDIA' },
   { id: 'meta/llama-3.3-70b-instruct', name: 'Llama 3.3 70B', badge: 'NVIDIA' },
   { id: 'deepseek-ai/deepseek-r1', name: 'DeepSeek R1', badge: 'NVIDIA' },
-  { id: 'qwen/qwen2.5-72b-instruct', name: 'Qwen2.5 72B', badge: 'NVIDIA' },
 ];
 
 export const CONVERSATIONS: Conversation[] = [
@@ -174,7 +179,7 @@ export const DEFAULT_AGENTS: Agent[] = [
 
 export const DEFAULT_SETTINGS: Settings = {
   theme: 'dark',
-  defaultModel: 'openai/gpt-oss-20b',
+  defaultModel: 'llama-3.1-8b-instant',
   temperature: 0.7,
   maxTokens: 2048,
   systemPrompt:

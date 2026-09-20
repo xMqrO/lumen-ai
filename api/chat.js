@@ -19,11 +19,6 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: 'Invalid JSON body' });
   }
 
-  const key = process.env.NVIDIA_API_KEY;
-  if (!key) {
-    return res.status(500).json({ error: 'NVIDIA_API_KEY environment variable is not configured.' });
-  }
-
   const {
     model = 'z-ai/glm-5.3',
     messages = [],
@@ -36,13 +31,63 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: 'messages array is required' });
   }
 
+  const PROVIDERS = {
+    cerebras: {
+      base: 'https://api.cerebras.ai/v1/chat/completions',
+      env: 'CEREBRAS_API_KEY',
+      models: new Set([
+        'llama3.1-8b',
+        'llama3.1-70b',
+        'llama-3.3-70b',
+        'gpt-oss-120b',
+        'gpt-oss-20b',
+        'qwen-3.8-27b',
+        'qwen-3-32b',
+        'zai-glm-4.6',
+        'zai-glm-4.7',
+        'gemma-4-31b',
+      ]),
+    },
+    groq: {
+      base: 'https://api.groq.com/openai/v1/chat/completions',
+      env: 'GROQ_API_KEY',
+      models: new Set([
+        'llama-3.1-8b-instant',
+        'llama-3.3-70b-versatile',
+        'openai/gpt-oss-20b',
+        'openai/gpt-oss-120b',
+        'qwen/qwen3.6-27b',
+        'meta-llama/llama-4-scout-17b-16e-instruct',
+        'meta-llama/llama-4-maverick-17b-128e-instruct',
+      ]),
+    },
+    nvidia: {
+      base: 'https://integrate.api.nvidia.com/v1/chat/completions',
+      env: 'NVIDIA_API_KEY',
+      models: null, // fallback for everything else
+    },
+  };
+
+  let provider = Object.values(PROVIDERS).find((p) => p.models?.has(model)) || PROVIDERS.nvidia;
+  const key = process.env[provider.env];
+  if (!key) {
+    return res.status(500).json({
+      error: `${provider.env} environment variable is not configured.`,
+    });
+  }
+
   const payload = { model, messages, temperature, top_p: 1, max_tokens, stream: true };
-  // glm-5.3 is a reasoning model — how hard it "thinks" before answering.
-  if (reasoning_effort) payload.reasoning_effort = reasoning_effort;
+  // Forward the reasoning knob only where the upstream understands it.
+  if (
+    reasoning_effort &&
+    (provider === PROVIDERS.nvidia || (provider === PROVIDERS.cerebras && /^gpt-oss/.test(model)))
+  ) {
+    payload.reasoning_effort = reasoning_effort;
+  }
 
   let up;
   try {
-    up = await fetch('https://integrate.api.nvidia.com/v1/chat/completions', {
+    up = await fetch(provider.base, {
       method: 'POST',
       headers: {
         'content-type': 'application/json',
