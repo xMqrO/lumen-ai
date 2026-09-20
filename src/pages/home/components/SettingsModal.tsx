@@ -154,6 +154,18 @@ export default function SettingsModal({
                 className="w-40 cursor-pointer accent-brand-500"
               />
             </Row>
+            <Row label="Reasoning effort" desc="How hard the model thinks before answering">
+              <select
+                value={settings.reasoningEffort}
+                onChange={(e) => onChange({ reasoningEffort: e.target.value })}
+                className="cursor-pointer rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-900 outline-none focus:border-brand-400 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
+              >
+                <option value="high">High (slower, smarter)</option>
+                <option value="medium">Medium</option>
+                <option value="low">Low (fast)</option>
+                <option value="auto">Auto</option>
+              </select>
+            </Row>
             <Row label="Stream responses" desc="Show text as it's generated">
               <Switch
                 checked={settings.stream}

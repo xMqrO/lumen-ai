@@ -160,6 +160,9 @@ export default function Home() {
             messages: apiMessages,
             temperature: settings.temperature,
             max_tokens: settings.maxTokens,
+            ...(settings.reasoningEffort !== 'auto'
+              ? { reasoning_effort: settings.reasoningEffort }
+              : {}),
           }),
           signal: controller.signal,
         });
@@ -172,17 +175,41 @@ export default function Home() {
 
         const reader = resp.body.getReader();
         const decoder = new TextDecoder();
-        let acc = '';
-        for (;;) {
-          const { done, value } = await reader.read();
-          if (done) break;
-          acc += decoder.decode(value, { stream: true });
+        let buffer = '';
+        let contentAcc = '';
+        let reasoningAcc = '';
+        const flush = () => {
           setMessages((prev) => ({
             ...prev,
             [activeId]: (prev[activeId] ?? []).map((m) =>
-              m.id === assistantId ? { ...m, content: acc } : m,
+              m.id === assistantId
+                ? { ...m, content: contentAcc, reasoning: reasoningAcc }
+                : m,
             ),
           }));
+        };
+        for (;;) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          buffer += decoder.decode(value, { stream: true });
+          let nl = buffer.indexOf('\n');
+          while (nl !== -1) {
+            const line = buffer.slice(0, nl).trim();
+            buffer = buffer.slice(nl + 1);
+            if (line) {
+              try {
+                const obj = JSON.parse(line);
+                if (obj.type === 'reasoning' && obj.text) reasoningAcc += obj.text;
+                else if (obj.type === 'content' && obj.text) contentAcc += obj.text;
+                else if (obj.type === 'error')
+                  contentAcc += (contentAcc ? '\n\n' : '') + `⚠ ${obj.text}`;
+                flush();
+              } catch {
+                /* skip malformed line */
+              }
+            }
+            nl = buffer.indexOf('\n');
+          }
         }
       } catch (err) {
         if (controller.signal.aborted) return;

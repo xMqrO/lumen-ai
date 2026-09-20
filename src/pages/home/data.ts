@@ -188,6 +188,7 @@ export const DEFAULT_SETTINGS: Settings = {
   autoTitle: true,
   showSuggestions: true,
   language: 'English',
+  reasoningEffort: 'high',
 };
 
 export const DEFAULT_PROVIDERS: Provider[] = [

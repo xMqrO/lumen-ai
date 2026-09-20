@@ -4,6 +4,7 @@ export interface Message {
   id: string;
   role: Role;
   content: string;
+  reasoning?: string;
 }
 
 export interface Model {
@@ -54,6 +55,7 @@ export interface Settings {
   autoTitle: boolean;
   showSuggestions: boolean;
   language: string;
+  reasoningEffort: string;
 }
 
 export interface Provider {

@@ -29,11 +29,16 @@ export default async function handler(req, res) {
     messages = [],
     temperature = 0.7,
     max_tokens = 2048,
+    reasoning_effort,
   } = body;
 
   if (!Array.isArray(messages) || messages.length === 0) {
     return res.status(400).json({ error: 'messages array is required' });
   }
+
+  const payload = { model, messages, temperature, top_p: 1, max_tokens, stream: true };
+  // glm-5.3 is a reasoning model — how hard it "thinks" before answering.
+  if (reasoning_effort) payload.reasoning_effort = reasoning_effort;
 
   let up;
   try {
@@ -43,14 +48,7 @@ export default async function handler(req, res) {
         'content-type': 'application/json',
         authorization: `Bearer ${key}`,
       },
-      body: JSON.stringify({
-        model,
-        messages,
-        temperature,
-        top_p: 1,
-        max_tokens,
-        stream: true,
-      }),
+      body: JSON.stringify(payload),
     });
   } catch (err) {
     return res.status(502).json({ error: `Upstream request failed: ${err.message}` });
@@ -63,11 +61,20 @@ export default async function handler(req, res) {
       .json({ error: `Upstream error ${up.status}: ${text.slice(0, 500) || up.statusText}` });
   }
 
+  // NDJSON typed stream so the client can show "thinking" separately from the answer.
   res.writeHead(200, {
-    'content-type': 'text/plain; charset=utf-8',
+    'content-type': 'application/x-ndjson; charset=utf-8',
     'cache-control': 'no-cache, no-transform',
     connection: 'keep-alive',
   });
+
+  const emit = (obj) => {
+    try {
+      res.write(JSON.stringify(obj) + '\n');
+    } catch {
+      /* client disconnected */
+    }
+  };
 
   try {
     const reader = up.body.getReader();
@@ -87,12 +94,15 @@ export default async function handler(req, res) {
           if (!data || data === '[DONE]') continue;
           try {
             const obj = JSON.parse(data);
-            const piece =
-              obj.choices?.[0]?.delta?.content ??
-              obj.choices?.[0]?.message?.content ??
-              obj.output_text ??
-              '';
-            if (piece) res.write(piece);
+            if (obj.error) {
+              emit({ type: 'error', text: obj.error.message || JSON.stringify(obj.error) });
+              continue;
+            }
+            const delta = obj.choices?.[0]?.delta ?? {};
+            const reasoning = delta.reasoning_content || delta.reasoning || delta.thinking || '';
+            const content = delta.content || delta.text || '';
+            if (reasoning) emit({ type: 'reasoning', text: String(reasoning) });
+            if (content) emit({ type: 'content', text: String(content) });
           } catch {
             /* skip malformed event */
           }
@@ -100,6 +110,7 @@ export default async function handler(req, res) {
         sep = buffer.indexOf('\n\n');
       }
     }
+    emit({ type: 'done' });
   } finally {
     try {
       res.end();
