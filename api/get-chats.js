@@ -14,14 +14,28 @@ export default async function handler(req, res) {
 
   const url = process.env.SUPABASE_URL;
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  if (!url || !key) {
+  const anon = process.env.SUPABASE_ANON_KEY;
+  if (!url || !key || !anon) {
     return res.status(500).json({ error: 'Supabase is not configured on the server.' });
   }
+
+  const token = String(req.headers.authorization || '').replace(/^Bearer\s+/i, '');
+  if (!token) {
+    return res.status(401).json({ error: 'Not authenticated' });
+  }
+
+  const anonClient = createClient(url, anon);
+  const { data: ver, error: verErr } = await anonClient.auth.getUser(token);
+  if (verErr || !ver.user) {
+    return res.status(401).json({ error: 'Invalid session' });
+  }
+  const uid = ver.user.id;
 
   const sb = createClient(url, key);
   const { data, error } = await sb
     .from('conversations')
     .select('id,title,preview,created_at,updated_at')
+    .eq('user_id', uid)
     .order('updated_at', { ascending: false });
 
   if (error) {

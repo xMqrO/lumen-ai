@@ -14,6 +14,8 @@ interface SidebarProps {
   onToggleTheme: () => void;
   open: boolean;
   onClose: () => void;
+  userEmail?: string;
+  onSignOut?: () => void;
 }
 
 export default function Sidebar({
@@ -29,6 +31,8 @@ export default function Sidebar({
   onToggleTheme,
   open,
   onClose,
+  userEmail,
+  onSignOut,
 }: SidebarProps) {
   const [query, setQuery] = useState('');
   const [tab, setTab] = useState<'chats' | 'projects'>('chats');
@@ -224,29 +228,40 @@ className={`group flex w-full cursor-pointer items-center gap-2 rounded-lg px-2.
         {/* Account */}
         <div className="border-t border-zinc-200 p-3 dark:border-zinc-800">
           <div className="flex items-center gap-2.5 rounded-lg px-1 py-1.5">
-            <span className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-zinc-500 to-zinc-700 text-xs font-bold text-white">
-              AV
+            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-amber-500 to-orange-600 text-xs font-bold text-white">
+              {(userEmail?.trim()[0] ?? 'L').toUpperCase()}
             </span>
             <div className="min-w-0 flex-1">
               <p className="truncate text-sm font-medium text-zinc-800 dark:text-zinc-100">
-                Alex Vega
+                {userEmail || 'Guest'}
               </p>
-              <p className="truncate text-xs text-zinc-400">Pro plan</p>
+              <p className="truncate text-xs text-zinc-400">
+                {userEmail ? 'Signed in' : 'Not signed in'}
+              </p>
             </div>
             <button
               onClick={onToggleTheme}
               aria-label="Toggle theme"
-              className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-lg text-zinc-500 transition-colors hover:bg-zinc-200/70 dark:hover:bg-zinc-800"
+              className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-lg text-zinc-500 transition-all duration-150 hover:bg-zinc-200/70 active:scale-90 dark:hover:bg-zinc-800"
             >
               <i className={theme === 'dark' ? 'ri-sun-line text-lg' : 'ri-moon-line text-lg'} />
             </button>
             <button
               onClick={onOpenSettings}
               aria-label="Settings"
-              className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-lg text-zinc-500 transition-colors hover:bg-zinc-200/70 dark:hover:bg-zinc-800"
+              className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-lg text-zinc-500 transition-all duration-150 hover:bg-zinc-200/70 active:scale-90 dark:hover:bg-zinc-800"
             >
               <i className="ri-settings-3-line text-lg" />
             </button>
+            {onSignOut && (
+              <button
+                onClick={onSignOut}
+                aria-label="Sign out"
+                className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-lg text-zinc-500 transition-all duration-150 hover:bg-red-50 hover:text-red-500 active:scale-90 dark:hover:bg-red-500/10 dark:hover:text-red-400"
+              >
+                <i className="ri-logout-box-r-line text-lg" />
+              </button>
+            )}
           </div>
         </div>
       </aside>

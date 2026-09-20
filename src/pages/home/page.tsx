@@ -9,6 +9,7 @@ import Agents from './components/Agents';
 import SettingsModal from './components/SettingsModal';
 import { useTheme } from '@/hooks/useTheme';
 import { DEFAULT_AGENTS, DEFAULT_SETTINGS, MODELS, PROJECTS, VISION_MODEL_ID } from './data';
+import { useAuth } from '@/auth/AuthContext';
 import type { Agent, Conversation, Message, Model, Settings } from './types';
 
 type View = 'chat' | 'agents';
@@ -41,6 +42,10 @@ function loadSettings(): Settings {
 
 export default function Home() {
   const { theme, toggle } = useTheme();
+  const { session, user, signOut } = useAuth();
+  const authHeaders = session?.access_token
+    ? { authorization: `Bearer ${session.access_token}` }
+    : {};
   const [view, setView] = useState<View>('chat');
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [activeId, setActiveId] = useState<string>('');
@@ -74,7 +79,7 @@ export default function Home() {
     try {
       await fetch('/api/save-chat', {
         method: 'POST',
-        headers: { 'content-type': 'application/json' },
+        headers: { 'content-type': 'application/json', ...authHeaders },
         body: JSON.stringify({
           id: convoId,
           title: convo.title,
@@ -97,7 +102,9 @@ export default function Home() {
   const loadChat = async (convoId: string) => {
     if (msgsRef.current[convoId]) return;
     try {
-      const r = await fetch(`/api/get-chat?id=${encodeURIComponent(convoId)}`);
+      const r = await fetch(`/api/get-chat?id=${encodeURIComponent(convoId)}`, {
+        headers: authHeaders,
+      });
       if (!r.ok) return;
       const data = (await r.json()) as { messages?: Message[] };
       if (data.messages) setMsgs({ ...msgsRef.current, [convoId]: data.messages });
@@ -111,7 +118,7 @@ export default function Home() {
     let alive = true;
     void (async () => {
       try {
-        const r = await fetch('/api/get-chats');
+        const r = await fetch('/api/get-chats', { headers: authHeaders });
         if (!r.ok) return;
         const data = (await r.json()) as { conversations?: Conversation[] };
         if (!alive || !data.conversations || data.conversations.length === 0) return;
@@ -427,6 +434,8 @@ export default function Home() {
         onToggleTheme={toggle}
         open={sidebarOpen}
         onClose={() => setSidebarOpen(false)}
+        userEmail={user?.email ?? ''}
+        onSignOut={signOut}
       />
 
       <div className="flex min-w-0 flex-1">
