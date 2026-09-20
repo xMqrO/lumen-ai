@@ -145,9 +145,9 @@ export default function Composer({
 
   return (
     <div className="w-full">
-      <div className="rounded-2xl border border-zinc-200 bg-white p-2.5 transition-colors focus-within:border-brand-400/70 dark:border-zinc-700/70 dark:bg-zinc-900">
+      <div className="rounded-2xl border border-zinc-200 bg-white p-2.5 transition-all duration-200 focus-within:border-brand-400/70 focus-within:shadow-[0_0_0_3px_rgba(245,158,11,0.15)] dark:border-zinc-700/70 dark:bg-zinc-900">
         {image && (
-          <div className="mb-2 flex items-center gap-2 rounded-xl border border-zinc-200 bg-zinc-50 p-2 dark:border-zinc-700 dark:bg-zinc-800/60">
+          <div className="mb-2 flex animate-fade-up items-center gap-2 rounded-xl border border-zinc-200 bg-zinc-50 p-2 dark:border-zinc-700 dark:bg-zinc-800/60">
             <img src={image} alt="Attachment preview" className="h-14 w-14 rounded-lg object-cover" />
             <span className="min-w-0 flex-1 truncate text-xs text-zinc-500 dark:text-zinc-400">
               Image attached — analyzed by Qwen 3.8 (vision)
@@ -179,7 +179,7 @@ export default function Composer({
             <button
               onClick={() => fileRef.current?.click()}
               aria-label="Attach file"
-              className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-lg text-zinc-500 transition-colors hover:bg-zinc-100 dark:text-zinc-400 dark:hover:bg-zinc-800"
+              className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-lg text-zinc-500 transition-all duration-150 hover:bg-zinc-100 active:scale-90 dark:text-zinc-400 dark:hover:bg-zinc-800"
             >
               <i className="ri-attachment-2 text-lg" />
             </button>
@@ -197,7 +197,7 @@ export default function Composer({
             <button
               onClick={toggleRecording}
               aria-label={recording ? 'Stop recording' : 'Voice input'}
-              className={`flex h-9 w-9 cursor-pointer items-center justify-center rounded-lg transition-colors ${
+              className={`flex h-9 w-9 cursor-pointer items-center justify-center rounded-lg transition-all duration-150 active:scale-90 ${
                 recording
                   ? 'bg-red-500 text-white animate-pulse'
                   : 'text-zinc-500 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:bg-zinc-800'
@@ -209,7 +209,7 @@ export default function Composer({
             <div className="relative">
               <button
                 onClick={() => setMenuOpen((o) => !o)}
-                className="flex h-9 cursor-pointer items-center gap-1.5 whitespace-nowrap rounded-lg px-2.5 text-sm font-medium text-zinc-600 transition-colors hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-800"
+                className="flex h-9 cursor-pointer items-center gap-1.5 whitespace-nowrap rounded-lg px-2.5 text-sm font-medium text-zinc-600 transition-all duration-150 hover:bg-zinc-100 active:scale-95 dark:text-zinc-300 dark:hover:bg-zinc-800"
               >
                 {model.name}
                 <i className="ri-arrow-down-s-line text-base" />
@@ -218,7 +218,7 @@ export default function Composer({
               {menuOpen && (
                 <>
                   <div className="fixed inset-0 z-10" onClick={() => setMenuOpen(false)} />
-                  <div className="absolute bottom-11 left-0 z-20 w-56 overflow-hidden rounded-xl border border-zinc-200 bg-white py-1 dark:border-zinc-700 dark:bg-zinc-800">
+                  <div className="absolute bottom-11 left-0 z-20 w-56 origin-bottom-left animate-pop-in overflow-hidden rounded-xl border border-zinc-200 bg-white py-1 shadow-xl dark:border-zinc-700 dark:bg-zinc-800">
                     {MODELS.map((m) => (
                       <button
                         key={m.id}
@@ -246,7 +246,7 @@ export default function Composer({
             <button
               onClick={onStop}
               aria-label="Stop generating"
-              className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-lg bg-zinc-800 text-white transition-colors hover:bg-zinc-700 dark:bg-zinc-200 dark:text-zinc-900"
+              className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-lg bg-zinc-800 text-white transition-all duration-150 hover:bg-zinc-700 active:scale-90 dark:bg-zinc-200 dark:text-zinc-900"
             >
               <i className="ri-stop-fill text-base" />
             </button>
@@ -255,7 +255,7 @@ export default function Composer({
               onClick={submit}
               disabled={(!value.trim() && !image) || streaming}
               aria-label="Send message"
-              className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-lg bg-brand-500 text-white transition-colors hover:bg-brand-600 disabled:cursor-not-allowed disabled:opacity-40"
+              className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-lg bg-brand-500 text-white transition-all duration-150 hover:bg-brand-600 hover:shadow-lg hover:shadow-brand-500/30 active:scale-90 disabled:cursor-not-allowed disabled:opacity-40"
             >
               <i className="ri-arrow-up-line text-lg" />
             </button>

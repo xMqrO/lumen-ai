@@ -65,7 +65,7 @@ export default function ToolsPanel({ model, open, onClose }: ToolsPanelProps) {
           <button
             onClick={onClose}
             aria-label="Close panel"
-            className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-lg text-zinc-500 hover:bg-zinc-200/70 dark:hover:bg-zinc-800 xl:hidden"
+            className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-lg text-zinc-500 transition-all duration-150 hover:bg-zinc-200/70 active:scale-90 dark:hover:bg-zinc-800 xl:hidden"
           >
             <i className="ri-close-line text-lg" />
           </button>

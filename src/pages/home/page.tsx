@@ -305,7 +305,7 @@ export default function Home() {
   const updateSettings = (patch: Partial<Settings>) => setSettings((s) => ({ ...s, ...patch }));
 
   return (
-    <div className="flex h-screen overflow-hidden bg-white text-zinc-900 dark:bg-zinc-950 dark:text-zinc-100">
+    <div className="flex h-screen animate-fade-in overflow-hidden bg-white text-zinc-900 dark:bg-zinc-950 dark:text-zinc-100">
       <Sidebar
         conversations={conversations}
         projects={PROJECTS}

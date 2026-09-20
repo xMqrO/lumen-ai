@@ -58,11 +58,11 @@ export default function SettingsModal({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div
-        className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+        className="absolute inset-0 animate-fade-in bg-black/50 backdrop-blur-sm"
         onClick={onClose}
         aria-hidden
       />
-      <div className="relative flex h-[90vh] w-full max-w-2xl flex-col overflow-hidden rounded-2xl border border-zinc-200 bg-white dark:border-zinc-700 dark:bg-zinc-900">
+      <div className="relative flex h-[90vh] w-full max-w-2xl animate-scale-in flex-col overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-2xl dark:border-zinc-700 dark:bg-zinc-900">
         {/* Header */}
         <div className="flex items-center justify-between border-b border-zinc-200 px-6 py-4 dark:border-zinc-800">
           <div className="flex items-center gap-2.5">

@@ -20,7 +20,7 @@ export default function ChatHeader({
       <button
         onClick={onOpenSidebar}
         aria-label="Open sidebar"
-        className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-lg text-zinc-500 transition-colors hover:bg-zinc-100 dark:hover:bg-zinc-800 lg:hidden"
+        className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-lg text-zinc-500 transition-all duration-150 hover:bg-zinc-100 active:scale-90 dark:hover:bg-zinc-800 lg:hidden"
       >
         <i className="ri-menu-line text-xl" />
       </button>
@@ -34,21 +34,21 @@ export default function ChatHeader({
 
       <button
         aria-label="Share chat"
-        className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-lg text-zinc-500 transition-colors hover:bg-zinc-100 dark:hover:bg-zinc-800"
+        className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-lg text-zinc-500 transition-all duration-150 hover:bg-zinc-100 active:scale-90 dark:hover:bg-zinc-800"
       >
         <i className="ri-share-forward-line text-lg" />
       </button>
       <button
         onClick={onOpenSettings}
         aria-label="Settings"
-        className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-lg text-zinc-500 transition-colors hover:bg-zinc-100 dark:hover:bg-zinc-800"
+        className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-lg text-zinc-500 transition-all duration-150 hover:bg-zinc-100 active:scale-90 dark:hover:bg-zinc-800"
       >
         <i className="ri-settings-3-line text-lg" />
       </button>
       <button
         onClick={onToggleTools}
         aria-label="Toggle tools panel"
-        className={`flex h-9 w-9 cursor-pointer items-center justify-center rounded-lg transition-colors ${
+        className={`flex h-9 w-9 cursor-pointer items-center justify-center rounded-lg transition-all duration-150 active:scale-90 ${
           toolsOpen
             ? 'bg-brand-100 text-brand-600 dark:bg-brand-500/15 dark:text-brand-300'
             : 'text-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-800'

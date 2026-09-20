@@ -9,7 +9,7 @@ const MessageItem = memo(function MessageItem({ m }: MessageItemProps) {
   return (
     <div
       key={m.id}
-      className={`group flex gap-3 py-4 ${m.role === 'user' ? 'animate-fade-up' : ''}`}
+      className={`group flex animate-fade-up gap-3 py-4`}
     >
       <span
         className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-white ${
@@ -46,13 +46,13 @@ const MessageItem = memo(function MessageItem({ m }: MessageItemProps) {
 
         {m.role === 'assistant' && m.content && (
           <div className="mt-2 flex items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100">
-            <button className="flex h-7 w-7 cursor-pointer items-center justify-center rounded-md text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800" aria-label="Copy">
+            <button className="flex h-7 w-7 cursor-pointer items-center justify-center rounded-md text-zinc-400 transition-all duration-150 hover:bg-zinc-100 active:scale-90 dark:hover:bg-zinc-800" aria-label="Copy">
               <i className="ri-file-copy-line text-sm" />
             </button>
-            <button className="flex h-7 w-7 cursor-pointer items-center justify-center rounded-md text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800" aria-label="Good response">
+            <button className="flex h-7 w-7 cursor-pointer items-center justify-center rounded-md text-zinc-400 transition-all duration-150 hover:bg-zinc-100 active:scale-90 dark:hover:bg-zinc-800" aria-label="Good response">
               <i className="ri-thumb-up-line text-sm" />
             </button>
-            <button className="flex h-7 w-7 cursor-pointer items-center justify-center rounded-md text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800" aria-label="Regenerate">
+            <button className="flex h-7 w-7 cursor-pointer items-center justify-center rounded-md text-zinc-400 transition-all duration-150 hover:bg-zinc-100 active:scale-90 dark:hover:bg-zinc-800" aria-label="Regenerate">
               <i className="ri-refresh-line text-sm" />
             </button>
           </div>

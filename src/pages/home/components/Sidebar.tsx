@@ -84,7 +84,7 @@ export default function Sidebar({
         <div className="px-3 pt-4">
           <button
             onClick={onNewChat}
-            className="flex w-full cursor-pointer items-center justify-center gap-2 whitespace-nowrap rounded-lg bg-brand-500 px-3 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-brand-600"
+            className="flex w-full cursor-pointer items-center justify-center gap-2 whitespace-nowrap rounded-lg bg-brand-500 px-3 py-2.5 text-sm font-semibold text-white transition-all duration-200 hover:bg-brand-600 hover:shadow-lg hover:shadow-brand-500/30 active:scale-[0.98]"
           >
             <i className="ri-add-line text-lg" />
             New chat
@@ -95,7 +95,7 @@ export default function Sidebar({
         <div className="px-3 pt-3">
           <button
             onClick={onOpenAgents}
-            className={`flex w-full cursor-pointer items-center gap-2.5 rounded-lg px-2.5 py-2 text-left transition-colors ${
+            className={`flex w-full cursor-pointer items-center gap-2.5 rounded-lg px-2.5 py-2 text-left transition-all duration-150 active:scale-[0.99] ${
               view === 'agents'
                 ? 'bg-white dark:bg-zinc-800'
                 : 'hover:bg-zinc-200/60 dark:hover:bg-zinc-800/60'
@@ -170,11 +170,11 @@ export default function Sidebar({
                         <button
                           key={c.id}
                           onClick={() => onSelect(c.id)}
-                          className={`group flex w-full cursor-pointer items-center gap-2 rounded-lg px-2.5 py-2 text-left transition-colors ${
-                            active
-                              ? 'bg-white dark:bg-zinc-800'
-                              : 'hover:bg-zinc-200/60 dark:hover:bg-zinc-800/60'
-                          }`}
+className={`group flex w-full cursor-pointer items-center gap-2 rounded-lg px-2.5 py-2 text-left transition-all duration-150 active:scale-[0.99] ${
+                              active
+                                ? 'bg-white dark:bg-zinc-800'
+                                : 'hover:bg-zinc-200/60 dark:hover:bg-zinc-800/60'
+                            }`}
                         >
                           <i
                             className={`${
