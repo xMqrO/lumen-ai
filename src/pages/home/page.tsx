@@ -26,7 +26,13 @@ function loadAgents(): Agent[] {
 function loadSettings(): Settings {
   try {
     const raw = window.localStorage.getItem('lumen_settings');
-    if (raw) return { ...DEFAULT_SETTINGS, ...(JSON.parse(raw) as Partial<Settings>) };
+    if (raw) {
+      const saved = JSON.parse(raw) as Partial<Settings>;
+      if (saved.defaultModel === 'z-ai/glm-5.3') {
+        saved.defaultModel = 'openai/gpt-oss-20b';
+      }
+      return { ...DEFAULT_SETTINGS, ...saved };
+    }
   } catch {
     /* ignore */
   }
@@ -190,17 +196,16 @@ export default function Home() {
             ),
           }));
         };
-        // Typewriter: instead of dumping whole tokens at once, characters are
-        // pulled from the received buffer a few per frame so the reply visibly
-        // writes out letter by letter. Pacing speeds up on big bursts.
+        // Stream at arrival speed: every tick drains the backlog so the reply
+        // paints continuously (letter-by-letter for slow streams, near-instant
+        // for fast ones) without ever throttling the model's throughput.
         const typeTimer = window.setInterval(() => {
           if (ended) return;
           const pending = received.length - shown;
           if (pending <= 0) return;
-          const step = pending > 300 ? 8 : pending > 90 ? 4 : pending > 24 ? 2 : 1;
-          shown = Math.min(received.length, shown + step);
+          shown = Math.min(received.length, shown + Math.max(1, Math.ceil(pending / 3)));
           paint();
-        }, 16);
+        }, 8);
         try {
           for (;;) {
             const { done, value } = await reader.read();

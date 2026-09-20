@@ -174,7 +174,7 @@ export const DEFAULT_AGENTS: Agent[] = [
 
 export const DEFAULT_SETTINGS: Settings = {
   theme: 'dark',
-  defaultModel: 'z-ai/glm-5.3',
+  defaultModel: 'openai/gpt-oss-20b',
   temperature: 0.7,
   maxTokens: 2048,
   systemPrompt:
