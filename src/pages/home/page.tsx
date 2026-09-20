@@ -176,28 +176,31 @@ export default function Home() {
         const reader = resp.body.getReader();
         const decoder = new TextDecoder();
         let buffer = '';
-        let contentAcc = '';
+        let received = '';
         let reasoningAcc = '';
-        let dirty = false;
-        const push = () => {
-          dirty = true;
+        let shown = 0;
+        let ended = false;
+        const paint = () => {
           setMessages((prev) => ({
             ...prev,
             [activeId]: (prev[activeId] ?? []).map((m) =>
               m.id === assistantId
-                ? { ...m, content: contentAcc, reasoning: reasoningAcc }
+                ? { ...m, content: received.slice(0, shown), reasoning: reasoningAcc }
                 : m,
             ),
           }));
         };
-        // Throttle React re-renders to ~30ms so tokens paint as a smooth,
-        // letter-by-letter stream instead of a separate render per token.
-        const flushTimer = window.setInterval(() => {
-          if (dirty) {
-            dirty = false;
-            push();
-          }
-        }, 30);
+        // Typewriter: instead of dumping whole tokens at once, characters are
+        // pulled from the received buffer a few per frame so the reply visibly
+        // writes out letter by letter. Pacing speeds up on big bursts.
+        const typeTimer = window.setInterval(() => {
+          if (ended) return;
+          const pending = received.length - shown;
+          if (pending <= 0) return;
+          const step = pending > 300 ? 8 : pending > 90 ? 4 : pending > 24 ? 2 : 1;
+          shown = Math.min(received.length, shown + step);
+          paint();
+        }, 16);
         try {
           for (;;) {
             const { done, value } = await reader.read();
@@ -211,10 +214,9 @@ export default function Home() {
                 try {
                   const obj = JSON.parse(line);
                   if (obj.type === 'reasoning' && obj.text) reasoningAcc += obj.text;
-                  else if (obj.type === 'content' && obj.text) contentAcc += obj.text;
+                  else if (obj.type === 'content' && obj.text) received += obj.text;
                   else if (obj.type === 'error')
-                    contentAcc += (contentAcc ? '\n\n' : '') + `⚠ ${obj.text}`;
-                  dirty = true;
+                    received += (received ? '\n\n' : '') + `⚠ ${obj.text}`;
                 } catch {
                   /* skip malformed line */
                 }
@@ -222,9 +224,11 @@ export default function Home() {
               nl = buffer.indexOf('\n');
             }
           }
+          ended = true;
         } finally {
-          window.clearInterval(flushTimer);
-          if (contentAcc || reasoningAcc) push();
+          window.clearInterval(typeTimer);
+          shown = received.length;
+          if (received || reasoningAcc) paint();
         }
       } catch (err) {
         if (controller.signal.aborted) return;

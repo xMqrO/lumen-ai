@@ -2,6 +2,7 @@ import type { Agent, Conversation, Message, Model, Project, Provider, Settings }
 
 export const MODELS: Model[] = [
   { id: 'z-ai/glm-5.3', name: 'GLM-5.3', badge: 'NVIDIA' },
+  { id: 'openai/gpt-oss-20b', name: 'GPT-OSS 20B', badge: 'NVIDIA' },
   { id: 'nvidia/llama-3.1-nemotron-70b-instruct', name: 'Nemotron 70B', badge: 'NVIDIA' },
   { id: 'meta/llama-3.3-70b-instruct', name: 'Llama 3.3 70B', badge: 'NVIDIA' },
   { id: 'deepseek-ai/deepseek-r1', name: 'DeepSeek R1', badge: 'NVIDIA' },
