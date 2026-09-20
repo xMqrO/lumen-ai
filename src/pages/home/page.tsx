@@ -178,7 +178,9 @@ export default function Home() {
         let buffer = '';
         let contentAcc = '';
         let reasoningAcc = '';
-        const flush = () => {
+        let dirty = false;
+        const push = () => {
+          dirty = true;
           setMessages((prev) => ({
             ...prev,
             [activeId]: (prev[activeId] ?? []).map((m) =>
@@ -188,28 +190,41 @@ export default function Home() {
             ),
           }));
         };
-        for (;;) {
-          const { done, value } = await reader.read();
-          if (done) break;
-          buffer += decoder.decode(value, { stream: true });
-          let nl = buffer.indexOf('\n');
-          while (nl !== -1) {
-            const line = buffer.slice(0, nl).trim();
-            buffer = buffer.slice(nl + 1);
-            if (line) {
-              try {
-                const obj = JSON.parse(line);
-                if (obj.type === 'reasoning' && obj.text) reasoningAcc += obj.text;
-                else if (obj.type === 'content' && obj.text) contentAcc += obj.text;
-                else if (obj.type === 'error')
-                  contentAcc += (contentAcc ? '\n\n' : '') + `⚠ ${obj.text}`;
-                flush();
-              } catch {
-                /* skip malformed line */
-              }
-            }
-            nl = buffer.indexOf('\n');
+        // Throttle React re-renders to ~30ms so tokens paint as a smooth,
+        // letter-by-letter stream instead of a separate render per token.
+        const flushTimer = window.setInterval(() => {
+          if (dirty) {
+            dirty = false;
+            push();
           }
+        }, 30);
+        try {
+          for (;;) {
+            const { done, value } = await reader.read();
+            if (done) break;
+            buffer += decoder.decode(value, { stream: true });
+            let nl = buffer.indexOf('\n');
+            while (nl !== -1) {
+              const line = buffer.slice(0, nl).trim();
+              buffer = buffer.slice(nl + 1);
+              if (line) {
+                try {
+                  const obj = JSON.parse(line);
+                  if (obj.type === 'reasoning' && obj.text) reasoningAcc += obj.text;
+                  else if (obj.type === 'content' && obj.text) contentAcc += obj.text;
+                  else if (obj.type === 'error')
+                    contentAcc += (contentAcc ? '\n\n' : '') + `⚠ ${obj.text}`;
+                  dirty = true;
+                } catch {
+                  /* skip malformed line */
+                }
+              }
+              nl = buffer.indexOf('\n');
+            }
+          }
+        } finally {
+          window.clearInterval(flushTimer);
+          if (contentAcc || reasoningAcc) push();
         }
       } catch (err) {
         if (controller.signal.aborted) return;
