@@ -7,6 +7,9 @@ interface AuthValue {
   user: Session['user'] | null;
   loading: boolean;
   signOut: () => Promise<void>;
+  sendSignup: (email: string, password: string) => Promise<void>;
+  requestPasswordReset: (email: string) => Promise<void>;
+  updatePassword: (newPassword: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthValue>({
@@ -14,6 +17,9 @@ const AuthContext = createContext<AuthValue>({
   user: null,
   loading: true,
   signOut: async () => {},
+  sendSignup: async () => {},
+  requestPasswordReset: async () => {},
+  updatePassword: async () => {},
 });
 
 export function AuthProvider({ children }: { children: ReactNode }) {
@@ -48,6 +54,28 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     loading,
     signOut: async () => {
       await supabase.auth.signOut();
+    },
+    sendSignup: async (email, password) => {
+      const r = await fetch('/api/auth-email', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ action: 'signup', email, password }),
+      });
+      const data = await r.json().catch(() => ({}));
+      if (!r.ok) throw new Error(data.error || 'Could not send the confirmation email.');
+    },
+    requestPasswordReset: async (email) => {
+      const r = await fetch('/api/auth-email', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ action: 'recovery', email }),
+      });
+      const data = await r.json().catch(() => ({}));
+      if (!r.ok) throw new Error(data.error || 'Could not send the reset email.');
+    },
+    updatePassword: async (newPassword) => {
+      const { error } = await supabase.auth.updateUser({ password: newPassword });
+      if (error) throw error;
     },
   };
 
