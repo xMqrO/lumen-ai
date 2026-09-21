@@ -1,7 +1,6 @@
 import { type ReactNode } from 'react';
 import { useAuth } from './AuthContext';
 import AuthScreen from './AuthScreen';
-import ResetPassword from './ResetPassword';
 
 function Splash() {
   return (
@@ -18,12 +17,8 @@ function Splash() {
 
 export default function AuthGate({ children }: { children: ReactNode }) {
   const { loading, session } = useAuth();
-  const isRecovery =
-    typeof window !== 'undefined' &&
-    window.location.hash.includes('type=recovery');
 
   if (loading) return <Splash />;
-  if (isRecovery && session) return <ResetPassword />;
   if (!session) return <AuthScreen />;
   return <>{children}</>;
 }
