@@ -78,19 +78,16 @@ export default async function handler(req, res) {
     }
     link = data?.properties?.action_link || data?.action_link || null;
   } else {
-    const { data: existing } = await sb.auth.admin.getUserByEmail(email);
-    if (!existing?.user) {
-      // Don't leak which emails are registered.
-      return res.json({ sent: true });
-    }
     const { data, error } = await sb.auth.admin.generateLink({
       type: 'recovery',
       email,
       options: { redirectTo },
     });
     if (error) {
-      console.error('[auth-email] generateLink(recovery):', error);
-      return res.status(500).json({ error: 'Could not create reset link.' });
+      // Unknown email (or another failure) - answer "sent" to avoid leaking
+      // which addresses are registered.
+      console.error('[auth-email] generateLink(recovery):', error.message);
+      return res.json({ sent: true });
     }
     link = data?.properties?.action_link || data?.action_link || null;
   }
